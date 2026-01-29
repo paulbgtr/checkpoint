@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 
+import { Card, CardHeader, CardFooter, CardTitle } from "../ui/card";
 import { formatDuration } from "@/lib/utils/format-duration";
 
 type Props = {
@@ -28,32 +29,27 @@ export const DaySession = ({ sessions }: Props) => {
   }, [sessions]);
 
   return (
-    <section style={{ marginTop: 32 }}>
-      <h2 style={{ fontSize: 20, marginBottom: 12 }}>
-        Today’s sessions ({todaysSessions.length})
-      </h2>
+    <section>
+      <h2 className="text-xl">Today’s sessions ({todaysSessions.length})</h2>
       {todaysSessions.length === 0 ? (
-        <p style={{ color: "#666" }}>No sessions logged yet.</p>
+        <p className="text-muted-foreground">No sessions logged yet.</p>
       ) : (
-        <div style={{ display: "grid", gap: 12 }}>
+        <div className="mt-4 flex flex-col gap-4">
           {todaysSessions.map((session) => (
-            <div
-              key={session.id}
-              style={{
-                borderRadius: 12,
-                border: "1px solid #e5e5e5",
-                padding: 14,
-              }}
-            >
-              <div style={{ fontWeight: 600 }}>{session.game}</div>
-              <div style={{ color: "#444", marginTop: 4 }}>
-                {new Date(session.start).toLocaleTimeString()} -{" "}
-                {new Date(session.end).toLocaleTimeString()}
-              </div>
-              <div style={{ marginTop: 6 }}>
+            <Card key={session.id}>
+              <CardHeader>
+                <CardTitle>{session.game}</CardTitle>
+
+                <div>
+                  {new Date(session.start).toLocaleTimeString()} -{" "}
+                  {new Date(session.end).toLocaleTimeString()}
+                </div>
+              </CardHeader>
+
+              <CardFooter>
                 Duration: {formatDuration(session.end - session.start)}
-              </div>
-            </div>
+              </CardFooter>
+            </Card>
           ))}
         </div>
       )}
