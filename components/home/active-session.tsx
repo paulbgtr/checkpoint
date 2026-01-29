@@ -1,4 +1,5 @@
 import { formatDuration } from "@/lib/utils/format-duration";
+import { Card, CardHeader, CardFooter, CardTitle } from "../ui/card";
 
 type Props = {
   activeSession: {
@@ -13,27 +14,23 @@ export const ActiveSession = ({ activeSession, now }: Props) => {
   const activeElapsed = activeSession ? now - activeSession.start : 0;
 
   return (
-    <section style={{ marginTop: 28 }}>
-      <h2 style={{ fontSize: 20, marginBottom: 8 }}>Current session</h2>
+    <section>
+      <h2 className="text-xl">Current session</h2>
+
       {activeSession ? (
-        <div
-          style={{
-            padding: 16,
-            borderRadius: 12,
-            border: "1px solid #e5e5e5",
-            background: "#fafafa",
-          }}
-        >
-          <div style={{ fontWeight: 600 }}>{activeSession.game}</div>
-          <div style={{ color: "#333", marginTop: 4 }}>
-            Started at {new Date(activeSession.start).toLocaleTimeString()}
-          </div>
-          <div style={{ marginTop: 8 }}>
-            Elapsed: {formatDuration(activeElapsed)}
-          </div>
+        <div className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>{activeSession.game}</CardTitle>
+              <div className="text-muted-foreground">
+                Started at {new Date(activeSession.start).toLocaleTimeString()}
+              </div>
+            </CardHeader>
+            <CardFooter>Elapsed: {formatDuration(activeElapsed)}</CardFooter>
+          </Card>
         </div>
       ) : (
-        <p style={{ color: "#666" }}>No active timer.</p>
+        <p className="text-muted-foreground">No active timer.</p>
       )}
     </section>
   );
