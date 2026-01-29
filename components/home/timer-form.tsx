@@ -1,3 +1,6 @@
+import { Input } from "../ui/input";
+import { Button } from "../ui/button";
+
 type Props = {
   gameName: string;
   setGameName: (name: string) => void;
@@ -18,59 +21,22 @@ export const TimerForm = ({
   handleStop,
 }: Props) => {
   return (
-    <div
-      style={{
-        display: "flex",
-        flexWrap: "wrap",
-        gap: 12,
-        alignItems: "center",
-        marginTop: 24,
-      }}
-    >
-      <input
+    <div className="flex gap-2">
+      <Input
         type="text"
         placeholder="Enter game title"
         value={gameName}
         onChange={(event) => setGameName(event.target.value)}
         disabled={Boolean(activeSession)}
-        style={{
-          flex: "1 1 220px",
-          padding: "10px 12px",
-          borderRadius: 8,
-          border: "1px solid #ccc",
-        }}
       />
       {!activeSession ? (
-        <button
-          type="button"
-          onClick={handleStart}
-          disabled={!gameName.trim()}
-          style={{
-            padding: "10px 16px",
-            borderRadius: 8,
-            border: "1px solid #111",
-            background: gameName.trim() ? "#111" : "#555",
-            color: "#fff",
-            cursor: gameName.trim() ? "pointer" : "not-allowed",
-          }}
-        >
+        <Button onClick={handleStart} disabled={!gameName.trim()}>
           Start timer
-        </button>
+        </Button>
       ) : (
-        <button
-          type="button"
-          onClick={handleStop}
-          style={{
-            padding: "10px 16px",
-            borderRadius: 8,
-            border: "1px solid #c23",
-            background: "#c23",
-            color: "#fff",
-            cursor: "pointer",
-          }}
-        >
+        <Button variant="destructive" onClick={handleStop}>
           Stop timer
-        </button>
+        </Button>
       )}
     </div>
   );
