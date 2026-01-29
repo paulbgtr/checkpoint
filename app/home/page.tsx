@@ -61,23 +61,27 @@ export default function Page() {
   };
 
   return (
-    <div style={{ maxWidth: 720, margin: "40px auto", padding: "0 20px" }}>
-      <h1 style={{ fontSize: 32, marginBottom: 8 }}>checkpoint</h1>
-      <p style={{ marginTop: 0, color: "#444" }}>
-        Track today’s gaming sessions so you can spot trends and set limits.
-      </p>
+    <div className="container max-w-4xl mx-auto px-4 py-8">
+      <header className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">checkpoint</h1>
+        <p className="text-gray-600">
+          Track today’s gaming sessions so you can spot trends and set limits.
+        </p>
+      </header>
 
-      <TimerForm
-        gameName={gameName}
-        setGameName={setGameName}
-        activeSession={activeSession}
-        handleStart={handleStart}
-        handleStop={handleStop}
-      />
+      <div className="space-y-4">
+        <TimerForm
+          gameName={gameName}
+          setGameName={setGameName}
+          activeSession={activeSession}
+          handleStart={handleStart}
+          handleStop={handleStop}
+        />
 
-      <ActiveSession activeSession={activeSession} now={now} />
+        <ActiveSession activeSession={activeSession} now={now} />
 
-      <DaySession sessions={sessions} />
+        <DaySession sessions={sessions} />
+      </div>
     </div>
   );
 }
