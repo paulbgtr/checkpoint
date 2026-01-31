@@ -6,14 +6,10 @@ import { Card, CardHeader, CardFooter, CardTitle } from "../ui/card";
 import { DayNavigation } from "./day-navigation";
 import { formatDuration } from "@/lib/utils/format-duration";
 import { getDayKey } from "@/lib/utils/get-day-key";
+import type { Session } from "@/lib/types/session";
 
 type Props = {
-  sessions: {
-    id: string;
-    game: string;
-    start: number;
-    end: number;
-  }[];
+  sessions: Session[];
 };
 
 export const DaySession = ({ sessions }: Props) => {

@@ -1,14 +1,11 @@
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
+import type { ActiveSession } from "@/lib/types/session";
 
 type Props = {
   gameName: string;
   setGameName: (name: string) => void;
-  activeSession: {
-    id: string;
-    game: string;
-    start: number;
-  } | null;
+  activeSession: ActiveSession | null;
   handleStart: () => void;
   handleStop: () => void;
 };

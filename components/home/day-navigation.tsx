@@ -4,17 +4,13 @@ import { Button } from "../ui/button";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
 import { getDayKey } from "@/lib/utils/get-day-key";
+import type { Session } from "@/lib/types/session";
 
 type Props = {
   selectedDayKey: number;
   setSelectedDayKey: Dispatch<SetStateAction<number>>;
   todayKey: number;
-  daySessions: {
-    id: string;
-    game: string;
-    start: number;
-    end: number;
-  }[];
+  daySessions: Session[];
 };
 
 const formatDayLabel = (date: Date) =>
