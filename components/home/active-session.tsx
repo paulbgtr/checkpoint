@@ -1,12 +1,9 @@
 import { formatDuration } from "@/lib/utils/format-duration";
 import { Card, CardHeader, CardFooter, CardTitle } from "../ui/card";
+import type { ActiveSession as ActiveSessionType } from "@/lib/types/session";
 
 type Props = {
-  activeSession: {
-    id: string;
-    game: string;
-    start: number;
-  } | null;
+  activeSession: ActiveSessionType | null;
   now: number;
 };
 
