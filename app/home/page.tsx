@@ -5,23 +5,36 @@ import { useEffect, useState } from "react";
 import { ActiveSession } from "@/components/home/active-session";
 import { TimerForm } from "@/components/home/timer-form";
 import { DaySession } from "@/components/home/day-session";
-
-type Session = {
-  id: string;
-  game: string;
-  start: number;
-  end: number;
-};
+import { db } from "@/lib/db/checkpoint-db";
+import type { Session } from "@/lib/types/session";
+import type { ActiveSession as ActiveSessionType } from "@/lib/types/session";
 
 export default function Page() {
   const [gameName, setGameName] = useState("");
-  const [activeSession, setActiveSession] = useState<{
-    id: string;
-    game: string;
-    start: number;
-  } | null>(null);
+  const [activeSession, setActiveSession] = useState<ActiveSessionType | null>(
+    null,
+  );
   const [sessions, setSessions] = useState<Session[]>([]);
   const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    let cancelled = false;
+    db.sessions
+      .orderBy("start")
+      .reverse()
+      .toArray()
+      .then((stored) => {
+        if (!cancelled) {
+          setSessions(stored);
+        }
+      })
+      .catch((error) => {
+        console.error("Failed to load sessions from IndexedDB", error);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (!activeSession) {
@@ -56,6 +69,9 @@ export default function Page() {
       end: Date.now(),
     };
     setSessions((prev) => [finished, ...prev]);
+    void db.sessions.put(finished).catch((error) => {
+      console.error("Failed to save session", error);
+    });
     setActiveSession(null);
     setNow(Date.now());
   };
