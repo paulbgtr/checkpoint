@@ -1,5 +1,5 @@
 import { formatDuration } from "@/lib/utils/format-duration";
-import { Card, CardHeader, CardFooter, CardTitle } from "../ui/card";
+import { Card, CardHeader, CardFooter, CardTitle, CardContent } from "../ui/card";
 import type { ActiveSession as ActiveSessionType } from "@/lib/types/session";
 
 type Props = {
@@ -23,6 +23,14 @@ export const ActiveSession = ({ activeSession, now }: Props) => {
                 Started at {new Date(activeSession.start).toLocaleTimeString()}
               </div>
             </CardHeader>
+            {activeSession.intent ? (
+              <CardContent>
+                <p className="text-muted-foreground whitespace-pre-line">
+                  <span className="text-foreground font-medium">Intent:</span>{" "}
+                  {activeSession.intent}
+                </p>
+              </CardContent>
+            ) : null}
             <CardFooter>Elapsed: {formatDuration(activeElapsed)}</CardFooter>
           </Card>
         </div>

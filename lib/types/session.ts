@@ -3,6 +3,8 @@ export type Session = {
   game: string;
   start: number;
   end: number;
+  intent?: string;
+  outcome?: string;
 };
 
-export type ActiveSession = Omit<Session, "end">;
+export type ActiveSession = Omit<Session, "end" | "outcome">;

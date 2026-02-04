@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-import { Card, CardHeader, CardFooter, CardTitle } from "../ui/card";
+import { Card, CardHeader, CardFooter, CardTitle, CardContent } from "../ui/card";
 import { DayNavigation } from "./day-navigation";
 import { formatDuration } from "@/lib/utils/format-duration";
 import { getDayKey } from "@/lib/utils/get-day-key";
@@ -64,6 +64,27 @@ export const DaySession = ({ sessions }: Props) => {
                   {new Date(session.end).toLocaleTimeString()}
                 </div>
               </CardHeader>
+
+              {session.intent || session.outcome ? (
+                <CardContent className="space-y-2">
+                  {session.intent ? (
+                    <p className="text-muted-foreground whitespace-pre-line">
+                      <span className="text-foreground font-medium">
+                        Intent:
+                      </span>{" "}
+                      {session.intent}
+                    </p>
+                  ) : null}
+                  {session.outcome ? (
+                    <p className="text-muted-foreground whitespace-pre-line">
+                      <span className="text-foreground font-medium">
+                        Outcome:
+                      </span>{" "}
+                      {session.outcome}
+                    </p>
+                  ) : null}
+                </CardContent>
+              ) : null}
 
               <CardFooter>
                 Duration: {formatDuration(session.end - session.start)}

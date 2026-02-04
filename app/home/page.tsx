@@ -6,6 +6,18 @@ import { ActiveSession } from "@/components/home/active-session";
 import { TimerForm } from "@/components/home/timer-form";
 import { DaySession } from "@/components/home/day-session";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { db } from "@/lib/db/checkpoint-db";
 import type { Session } from "@/lib/types/session";
 import type { ActiveSession as ActiveSessionType } from "@/lib/types/session";
@@ -36,11 +48,17 @@ const isSessionLike = (value: unknown): value is Session => {
     return false;
   }
   const record = value as Record<string, unknown>;
+  const intentValid =
+    record.intent === undefined || typeof record.intent === "string";
+  const outcomeValid =
+    record.outcome === undefined || typeof record.outcome === "string";
   return (
     typeof record.id === "string" &&
     typeof record.game === "string" &&
     Number.isFinite(record.start) &&
-    Number.isFinite(record.end)
+    Number.isFinite(record.end) &&
+    intentValid &&
+    outcomeValid
   );
 };
 
@@ -56,6 +74,8 @@ const extractSessions = (payload: unknown) => {
       game: session.game,
       start: session.start,
       end: session.end,
+      intent: session.intent,
+      outcome: session.outcome,
     })),
     total: rawSessions.length,
     invalidCount: rawSessions.length - validSessions.length,
@@ -75,11 +95,14 @@ const mergeSessions = (current: Session[], incoming: Session[]) => {
 
 export default function Page() {
   const [gameName, setGameName] = useState("");
+  const [intent, setIntent] = useState("");
   const [activeSession, setActiveSession] = useState<ActiveSessionType | null>(
     null,
   );
   const [sessions, setSessions] = useState<Session[]>([]);
   const [now, setNow] = useState(() => Date.now());
+  const [pendingSession, setPendingSession] = useState<Session | null>(null);
+  const [outcome, setOutcome] = useState("");
   const [importMessage, setImportMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -114,13 +137,31 @@ export default function Page() {
 
   const handleStart = () => {
     const trimmed = gameName.trim();
-    if (!trimmed || activeSession) {
+    if (!trimmed || activeSession || pendingSession) {
       return;
     }
+    const trimmedIntent = intent.trim();
     setActiveSession({
       id: crypto.randomUUID(),
       game: trimmed,
       start: Date.now(),
+      intent: trimmedIntent ? trimmedIntent : undefined,
+    });
+    setIntent("");
+  };
+
+  const upsertSession = (session: Session) => {
+    setSessions((prev) => {
+      const existingIndex = prev.findIndex((item) => item.id === session.id);
+      if (existingIndex === -1) {
+        return [session, ...prev];
+      }
+      const next = [...prev];
+      next[existingIndex] = session;
+      return next;
+    });
+    void db.sessions.put(session).catch((error) => {
+      console.error("Failed to save session", error);
     });
   };
 
@@ -133,13 +174,35 @@ export default function Page() {
       game: activeSession.game,
       start: activeSession.start,
       end: Date.now(),
+      intent: activeSession.intent,
     };
-    setSessions((prev) => [finished, ...prev]);
-    void db.sessions.put(finished).catch((error) => {
-      console.error("Failed to save session", error);
-    });
+    upsertSession(finished);
     setActiveSession(null);
     setNow(Date.now());
+    setOutcome("");
+    setPendingSession(finished);
+  };
+
+  const handleOutcomeSave = () => {
+    if (!pendingSession) {
+      return;
+    }
+    const trimmedOutcome = outcome.trim();
+    const finished = {
+      ...pendingSession,
+      outcome: trimmedOutcome ? trimmedOutcome : undefined,
+    };
+    upsertSession(finished);
+    setPendingSession(null);
+    setOutcome("");
+  };
+
+  const handleOutcomeSkip = () => {
+    if (!pendingSession) {
+      return;
+    }
+    setPendingSession(null);
+    setOutcome("");
   };
 
   const handleExport = () => {
@@ -247,6 +310,8 @@ export default function Page() {
         <TimerForm
           gameName={gameName}
           setGameName={setGameName}
+          intent={intent}
+          setIntent={setIntent}
           activeSession={activeSession}
           handleStart={handleStart}
           handleStop={handleStop}
@@ -256,6 +321,48 @@ export default function Page() {
 
         <DaySession sessions={sessions} />
       </div>
+
+      <AlertDialog open={Boolean(pendingSession)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Quick check-out</AlertDialogTitle>
+            <AlertDialogDescription>
+              What actually happened in this session?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          {pendingSession?.intent ? (
+            <p className="text-muted-foreground text-sm whitespace-pre-line">
+              <span className="text-foreground font-medium">Intent:</span>{" "}
+              {pendingSession.intent}
+            </p>
+          ) : null}
+
+          <div className="space-y-2">
+            <Label htmlFor="outcome-note">Outcome (optional)</Label>
+            <Textarea
+              id="outcome-note"
+              placeholder="What did you actually do or learn?"
+              value={outcome}
+              onChange={(event) => setOutcome(event.target.value)}
+              maxLength={240}
+              rows={3}
+            />
+          </div>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleOutcomeSkip}>
+              Skip
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleOutcomeSave}
+              disabled={!outcome.trim()}
+            >
+              Save outcome
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
