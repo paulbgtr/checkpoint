@@ -205,6 +205,24 @@ export default function Page() {
     setOutcome("");
   };
 
+  const handleDeleteSession = (sessionId: string) => {
+    setSessions((prev) => prev.filter((session) => session.id !== sessionId));
+    if (pendingSession?.id === sessionId) {
+      setPendingSession(null);
+      setOutcome("");
+    }
+    void db.sessions.delete(sessionId).catch((error) => {
+      console.error("Failed to delete session", error);
+    });
+  };
+
+  const handleEditSession = (session: Session) => {
+    upsertSession(session);
+    if (pendingSession?.id === session.id) {
+      setPendingSession(session);
+    }
+  };
+
   const handleExport = () => {
     const payload = {
       version: 1,
@@ -320,7 +338,11 @@ export default function Page() {
 
         <ActiveSession activeSession={activeSession} now={now} />
 
-        <DaySession sessions={sessions} />
+        <DaySession
+          sessions={sessions}
+          onDelete={handleDeleteSession}
+          onEdit={handleEditSession}
+        />
       </div>
 
       <AlertDialog open={Boolean(pendingSession)}>
