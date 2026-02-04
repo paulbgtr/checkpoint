@@ -16,6 +16,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { db } from "@/lib/db/checkpoint-db";
@@ -93,6 +94,13 @@ const mergeSessions = (current: Session[], incoming: Session[]) => {
   return Array.from(merged.values()).sort((a, b) => b.start - a.start);
 };
 
+const toLocalInputValue = (date: Date) => {
+  const pad = (value: number) => String(value).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+    date.getDate(),
+  )}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+};
+
 export default function Page() {
   const [gameName, setGameName] = useState("");
   const [intent, setIntent] = useState("");
@@ -105,6 +113,13 @@ export default function Page() {
   const [outcome, setOutcome] = useState("");
   const [importMessage, setImportMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
+  const [addGame, setAddGame] = useState("");
+  const [addStart, setAddStart] = useState("");
+  const [addEnd, setAddEnd] = useState("");
+  const [addIntent, setAddIntent] = useState("");
+  const [addOutcome, setAddOutcome] = useState("");
+  const [addError, setAddError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -223,6 +238,47 @@ export default function Page() {
     }
   };
 
+  const handleOpenAdd = () => {
+    const end = new Date();
+    const start = new Date(end.getTime() - 60 * 60 * 1000);
+    setAddGame("");
+    setAddStart(toLocalInputValue(start));
+    setAddEnd(toLocalInputValue(end));
+    setAddIntent("");
+    setAddOutcome("");
+    setAddError(null);
+    setAddOpen(true);
+  };
+
+  const handleAddSession = () => {
+    const trimmedGame = addGame.trim();
+    const startMs = addStart ? new Date(addStart).getTime() : NaN;
+    const endMs = addEnd ? new Date(addEnd).getTime() : NaN;
+    if (!trimmedGame) {
+      setAddError("Game title is required.");
+      return;
+    }
+    if (!Number.isFinite(startMs) || !Number.isFinite(endMs)) {
+      setAddError("Start and end times are required.");
+      return;
+    }
+    if (endMs <= startMs) {
+      setAddError("End time must be after start time.");
+      return;
+    }
+
+    const session: Session = {
+      id: crypto.randomUUID(),
+      game: trimmedGame,
+      start: startMs,
+      end: endMs,
+      intent: addIntent.trim() ? addIntent.trim() : undefined,
+      outcome: addOutcome.trim() ? addOutcome.trim() : undefined,
+    };
+    upsertSession(session);
+    setAddOpen(false);
+  };
+
   const handleExport = () => {
     const payload = {
       version: 1,
@@ -305,6 +361,9 @@ export default function Page() {
           Track today’s gaming sessions so you can spot trends and set limits.
         </p>
         <div className="flex flex-wrap items-center gap-2">
+          <Button size="sm" onClick={handleOpenAdd}>
+            Add session
+          </Button>
           <Button variant="outline" size="sm" onClick={handleExport}>
             Export JSON
           </Button>
@@ -382,6 +441,84 @@ export default function Page() {
               disabled={!outcome.trim()}
             >
               Save outcome
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={addOpen}
+        onOpenChange={(nextOpen) => {
+          setAddOpen(nextOpen);
+          if (!nextOpen) {
+            setAddError(null);
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Add a session</AlertDialogTitle>
+            <AlertDialogDescription>
+              Log a session manually with times and notes.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="add-game-title">Game title</Label>
+              <Input
+                id="add-game-title"
+                value={addGame}
+                onChange={(event) => setAddGame(event.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="add-start-time">Start time</Label>
+              <Input
+                id="add-start-time"
+                type="datetime-local"
+                value={addStart}
+                onChange={(event) => setAddStart(event.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="add-end-time">End time</Label>
+              <Input
+                id="add-end-time"
+                type="datetime-local"
+                value={addEnd}
+                onChange={(event) => setAddEnd(event.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="add-intent">Intent</Label>
+              <Textarea
+                id="add-intent"
+                value={addIntent}
+                onChange={(event) => setAddIntent(event.target.value)}
+                maxLength={240}
+                rows={3}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="add-outcome">Outcome</Label>
+              <Textarea
+                id="add-outcome"
+                value={addOutcome}
+                onChange={(event) => setAddOutcome(event.target.value)}
+                maxLength={240}
+                rows={3}
+              />
+            </div>
+            {addError ? (
+              <p className="text-sm text-destructive">{addError}</p>
+            ) : null}
+          </div>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleAddSession}>
+              Save session
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
