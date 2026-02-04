@@ -313,6 +313,7 @@ export default function Page() {
           intent={intent}
           setIntent={setIntent}
           activeSession={activeSession}
+          startDisabled={Boolean(pendingSession)}
           handleStart={handleStart}
           handleStop={handleStop}
         />
