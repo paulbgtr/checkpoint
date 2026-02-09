@@ -6,23 +6,13 @@ import { ActiveSession } from "@/components/home/active-session";
 import { TimerForm } from "@/components/home/timer-form";
 import { DaySession } from "@/components/home/day-session";
 import { Button } from "@/components/ui/button";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { db } from "@/lib/db/checkpoint-db";
 import type { Session } from "@/lib/types/session";
 import type { ActiveSession as ActiveSessionType } from "@/lib/types/session";
 import { AddSessionDialog } from "@/components/home/add-session-dialog";
 import { CheckoutDialog } from "@/components/home/checkout-dialog";
+import { mergeSessions } from "@/lib/utils/sessions/merge-sessions";
+import { extractSessions } from "@/lib/utils/sessions/extract-sessions";
 
 const buildExportFilename = () => {
   const now = new Date();
@@ -30,69 +20,6 @@ const buildExportFilename = () => {
   const month = String(now.getMonth() + 1).padStart(2, "0");
   const day = String(now.getDate()).padStart(2, "0");
   return `checkpoint-sessions-${year}-${month}-${day}.json`;
-};
-
-const getSessionsArray = (payload: unknown) => {
-  if (Array.isArray(payload)) {
-    return payload;
-  }
-  if (payload && typeof payload === "object") {
-    const record = payload as Record<string, unknown>;
-    if (Array.isArray(record.sessions)) {
-      return record.sessions;
-    }
-  }
-  return null;
-};
-
-const isSessionLike = (value: unknown): value is Session => {
-  if (!value || typeof value !== "object") {
-    return false;
-  }
-  const record = value as Record<string, unknown>;
-  const intentValid =
-    record.intent === undefined || typeof record.intent === "string";
-  const outcomeValid =
-    record.outcome === undefined || typeof record.outcome === "string";
-  return (
-    typeof record.id === "string" &&
-    typeof record.game === "string" &&
-    Number.isFinite(record.start) &&
-    Number.isFinite(record.end) &&
-    intentValid &&
-    outcomeValid
-  );
-};
-
-const extractSessions = (payload: unknown) => {
-  const rawSessions = getSessionsArray(payload);
-  if (!rawSessions) {
-    return null;
-  }
-  const validSessions = rawSessions.filter(isSessionLike);
-  return {
-    sessions: validSessions.map((session) => ({
-      id: session.id,
-      game: session.game,
-      start: session.start,
-      end: session.end,
-      intent: session.intent,
-      outcome: session.outcome,
-    })),
-    total: rawSessions.length,
-    invalidCount: rawSessions.length - validSessions.length,
-  };
-};
-
-const mergeSessions = (current: Session[], incoming: Session[]) => {
-  const merged = new Map<string, Session>();
-  for (const session of current) {
-    merged.set(session.id, session);
-  }
-  for (const session of incoming) {
-    merged.set(session.id, session);
-  }
-  return Array.from(merged.values()).sort((a, b) => b.start - a.start);
 };
 
 const toLocalInputValue = (date: Date) => {
