@@ -13,6 +13,7 @@ import { AddSessionDialog } from "@/components/home/add-session-dialog";
 import { CheckoutDialog } from "@/components/home/checkout-dialog";
 import { mergeSessions } from "@/lib/utils/sessions/merge-sessions";
 import { extractSessions } from "@/lib/utils/sessions/extract-sessions";
+import { AddSessionDialogTrigger } from "@/components/home/add-session-dialog";
 
 const buildExportFilename = () => {
   const now = new Date();
@@ -41,13 +42,6 @@ export default function Page() {
   const [outcome, setOutcome] = useState("");
   const [importMessage, setImportMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [addOpen, setAddOpen] = useState(false);
-  const [addGame, setAddGame] = useState("");
-  const [addStart, setAddStart] = useState("");
-  const [addEnd, setAddEnd] = useState("");
-  const [addIntent, setAddIntent] = useState("");
-  const [addOutcome, setAddOutcome] = useState("");
-  const [addError, setAddError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -166,18 +160,6 @@ export default function Page() {
     }
   };
 
-  const handleOpenAdd = () => {
-    const end = new Date();
-    const start = new Date(end.getTime() - 60 * 60 * 1000);
-    setAddGame("");
-    setAddStart(toLocalInputValue(start));
-    setAddEnd(toLocalInputValue(end));
-    setAddIntent("");
-    setAddOutcome("");
-    setAddError(null);
-    setAddOpen(true);
-  };
-
   const handleExport = () => {
     const payload = {
       version: 1,
@@ -260,9 +242,7 @@ export default function Page() {
           Track today’s gaming sessions so you can spot trends and set limits.
         </p>
         <div className="flex flex-wrap items-center gap-2">
-          <Button size="sm" onClick={handleOpenAdd}>
-            Add session
-          </Button>
+          <AddSessionDialogTrigger />
           <Button variant="outline" size="sm" onClick={handleExport}>
             Export JSON
           </Button>
@@ -311,23 +291,7 @@ export default function Page() {
         handleOutcomeSkip={handleOutcomeSkip}
       />
 
-      <AddSessionDialog
-        addOpen={addOpen}
-        setAddOpen={setAddOpen}
-        addGame={addGame}
-        setAddGame={setAddGame}
-        addStart={addStart}
-        setAddStart={setAddStart}
-        addEnd={addEnd}
-        setAddEnd={setAddEnd}
-        addIntent={addIntent}
-        setAddIntent={setAddIntent}
-        addOutcome={addOutcome}
-        setAddOutcome={setAddOutcome}
-        addError={addError}
-        setAddError={setAddError}
-        upsertSession={upsertSession}
-      />
+      <AddSessionDialog upsertSession={upsertSession} />
     </div>
   );
 }

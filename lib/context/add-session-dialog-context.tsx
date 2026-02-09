@@ -1,35 +1,48 @@
 import { useState, createContext } from "react";
 
+const toLocalInputValue = (date: Date) => {
+  const pad = (value: number) => String(value).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+    date.getDate(),
+  )}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+};
+
 export const AddSessionDialogContext = createContext<{
-  addOpen: boolean;
-  setAddOpen: (open: boolean) => void;
-  setAddError: (error: string | null) => void;
-  addGame: string;
-  addStart: string;
-  addEnd: string;
-  addIntent: string;
-  addOutcome: string;
-  setAddIntent: (intent: string) => void;
-  setAddGame: (game: string) => void;
-  setAddStart: (start: string) => void;
-  setAddEnd: (end: string) => void;
-  setAddOutcome: (outcome: string) => void;
-  addError: string | null;
+  open: boolean;
+  game: string;
+  start: string;
+  end: string;
+  intent: string;
+  outcome: string;
+  error: string | null;
+
+  setOpen: (open: boolean) => void;
+  setError: (error: string | null) => void;
+  setIntent: (intent: string) => void;
+  setGame: (game: string) => void;
+  setStart: (start: string) => void;
+  setEnd: (end: string) => void;
+  setOutcome: (outcome: string) => void;
+
+  openAddSessionDialog: () => void;
 }>({
-  addOpen: false,
-  setAddOpen: () => {},
-  setAddError: () => {},
-  addGame: "",
-  addStart: "",
-  addEnd: "",
-  addIntent: "",
-  addOutcome: "",
-  setAddIntent: () => {},
-  setAddGame: () => {},
-  setAddStart: () => {},
-  setAddEnd: () => {},
-  setAddOutcome: () => {},
-  addError: null,
+  open: false,
+  game: "",
+  start: "",
+  end: "",
+  intent: "",
+  outcome: "",
+  error: null,
+
+  setOpen: () => {},
+  setGame: () => {},
+  setError: () => {},
+  setIntent: () => {},
+  setStart: () => {},
+  setEnd: () => {},
+  setOutcome: () => {},
+
+  openAddSessionDialog: () => {},
 });
 
 export const AddSessionDialogProvider = ({
@@ -37,31 +50,46 @@ export const AddSessionDialogProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const [addOpen, setAddOpen] = useState(false);
-  const [addGame, setAddGame] = useState("");
-  const [addStart, setAddStart] = useState("");
-  const [addEnd, setAddEnd] = useState("");
-  const [addIntent, setAddIntent] = useState("");
-  const [addOutcome, setAddOutcome] = useState("");
-  const [addError, setAddError] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
+  const [game, setGame] = useState("");
+  const [start, setStart] = useState("");
+  const [end, setEnd] = useState("");
+  const [intent, setIntent] = useState("");
+  const [outcome, setOutcome] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  const openAddSessionDialog = () => {
+    const end = new Date();
+    const start = new Date(end.getTime() - 60 * 60 * 1000);
+    setGame("");
+    setStart(toLocalInputValue(start));
+    setEnd(toLocalInputValue(end));
+    setIntent("");
+    setOutcome("");
+    setError(null);
+    setOpen(true);
+  };
 
   return (
     <AddSessionDialogContext.Provider
       value={{
-        addOpen,
-        setAddOpen,
-        setAddError,
-        addGame,
-        addStart,
-        addEnd,
-        addIntent,
-        addOutcome,
-        setAddIntent,
-        setAddGame,
-        setAddStart,
-        setAddEnd,
-        setAddOutcome,
-        addError,
+        open,
+        game,
+        start,
+        end,
+        intent,
+        outcome,
+        error,
+
+        setOpen,
+        setError,
+        setIntent,
+        setGame,
+        setStart,
+        setEnd,
+        setOutcome,
+
+        openAddSessionDialog,
       }}
     >
       {children}

@@ -1,3 +1,5 @@
+import { useContext } from "react";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -12,56 +14,55 @@ import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import { Session } from "@/lib/types/session";
+import { AddSessionDialogContext } from "@/lib/context/add-session-dialog-context";
+import { Button } from "../ui/button";
 
-type Props = {
-  addOpen: boolean;
-  setAddOpen: (open: boolean) => void;
-  setAddError: (error: string | null) => void;
-  addGame: string;
-  addStart: string;
-  addEnd: string;
-  addIntent: string;
-  addOutcome: string;
+type AddSessionDialogProps = {
   upsertSession: (session: Session) => void;
-  setAddIntent: (intent: string) => void;
-  setAddGame: (game: string) => void;
-  setAddStart: (start: string) => void;
-  setAddEnd: (end: string) => void;
-  setAddOutcome: (outcome: string) => void;
-  addError: string | null;
 };
 
-export const AddSessionDialog = ({
-  setAddOpen,
-  addStart,
-  addEnd,
-  addGame,
-  addIntent,
-  addOutcome,
-  addOpen,
-  setAddError,
-  upsertSession,
-  setAddIntent,
-  setAddGame,
-  setAddStart,
-  setAddEnd,
-  setAddOutcome,
-  addError,
-}: Props) => {
+export const AddSessionDialogTrigger = () => {
+  const { openAddSessionDialog } = useContext(AddSessionDialogContext);
+
+  return (
+    <Button size="sm" onClick={openAddSessionDialog}>
+      Add session
+    </Button>
+  );
+};
+
+export const AddSessionDialog = ({ upsertSession }: AddSessionDialogProps) => {
+  const {
+    open,
+    setOpen,
+    setError,
+    game,
+    start,
+    end,
+    intent,
+    outcome,
+    setIntent,
+    setGame,
+    setStart,
+    setEnd,
+    setOutcome,
+    error,
+  } = useContext(AddSessionDialogContext);
+
   const handleAddSession = () => {
-    const trimmedGame = addGame.trim();
-    const startMs = addStart ? new Date(addStart).getTime() : NaN;
-    const endMs = addEnd ? new Date(addEnd).getTime() : NaN;
+    const trimmedGame = game.trim();
+    const startMs = start ? new Date(start).getTime() : NaN;
+    const endMs = end ? new Date(end).getTime() : NaN;
     if (!trimmedGame) {
-      setAddError("Game title is required.");
+      setError("Game title is required.");
       return;
     }
     if (!Number.isFinite(startMs) || !Number.isFinite(endMs)) {
-      setAddError("Start and end times are required.");
+      setError("Start and end times are required.");
       return;
     }
     if (endMs <= startMs) {
-      setAddError("End time must be after start time.");
+      setError("End time must be after start time.");
       return;
     }
 
@@ -70,20 +71,20 @@ export const AddSessionDialog = ({
       game: trimmedGame,
       start: startMs,
       end: endMs,
-      intent: addIntent.trim() ? addIntent.trim() : undefined,
-      outcome: addOutcome.trim() ? addOutcome.trim() : undefined,
+      intent: intent.trim() ? intent.trim() : undefined,
+      outcome: outcome.trim() ? outcome.trim() : undefined,
     };
     upsertSession(session);
-    setAddOpen(false);
+    setOpen(false);
   };
 
   return (
     <AlertDialog
-      open={addOpen}
+      open={open}
       onOpenChange={(nextOpen) => {
-        setAddOpen(nextOpen);
+        setOpen(nextOpen);
         if (!nextOpen) {
-          setAddError(null);
+          setError(null);
         }
       }}
     >
@@ -100,8 +101,8 @@ export const AddSessionDialog = ({
             <Label htmlFor="add-game-title">Game title</Label>
             <Input
               id="add-game-title"
-              value={addGame}
-              onChange={(event) => setAddGame(event.target.value)}
+              value={game}
+              onChange={(event) => setGame(event.target.value)}
             />
           </div>
           <div className="space-y-2">
@@ -109,8 +110,8 @@ export const AddSessionDialog = ({
             <Input
               id="add-start-time"
               type="datetime-local"
-              value={addStart}
-              onChange={(event) => setAddStart(event.target.value)}
+              value={start}
+              onChange={(event) => setStart(event.target.value)}
             />
           </div>
           <div className="space-y-2">
@@ -118,16 +119,16 @@ export const AddSessionDialog = ({
             <Input
               id="add-end-time"
               type="datetime-local"
-              value={addEnd}
-              onChange={(event) => setAddEnd(event.target.value)}
+              value={end}
+              onChange={(event) => setEnd(event.target.value)}
             />
           </div>
           <div className="space-y-2">
             <Label htmlFor="add-intent">Intent</Label>
             <Textarea
               id="add-intent"
-              value={addIntent}
-              onChange={(event) => setAddIntent(event.target.value)}
+              value={intent}
+              onChange={(event) => setIntent(event.target.value)}
               maxLength={240}
               rows={3}
             />
@@ -136,15 +137,13 @@ export const AddSessionDialog = ({
             <Label htmlFor="add-outcome">Outcome</Label>
             <Textarea
               id="add-outcome"
-              value={addOutcome}
-              onChange={(event) => setAddOutcome(event.target.value)}
+              value={outcome}
+              onChange={(event) => setOutcome(event.target.value)}
               maxLength={240}
               rows={3}
             />
           </div>
-          {addError ? (
-            <p className="text-sm text-destructive">{addError}</p>
-          ) : null}
+          {error ? <p className="text-sm text-destructive">{error}</p> : null}
         </div>
 
         <AlertDialogFooter>
