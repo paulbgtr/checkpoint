@@ -16,13 +16,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { db } from "@/lib/db/checkpoint-db";
 import type { Session } from "@/lib/types/session";
 import type { ActiveSession as ActiveSessionType } from "@/lib/types/session";
 import { AddSessionDialog } from "@/components/home/add-session-dialog";
+import { CheckoutDialog } from "@/components/home/checkout-dialog";
 
 const buildExportFilename = () => {
   const now = new Date();
@@ -376,47 +376,13 @@ export default function Page() {
         />
       </div>
 
-      <AlertDialog open={Boolean(pendingSession)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Quick check-out</AlertDialogTitle>
-            <AlertDialogDescription>
-              What actually happened in this session?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-
-          {pendingSession?.intent ? (
-            <p className="text-muted-foreground text-sm whitespace-pre-line">
-              <span className="text-foreground font-medium">Intent:</span>{" "}
-              {pendingSession.intent}
-            </p>
-          ) : null}
-
-          <div className="space-y-2">
-            <Label htmlFor="outcome-note">Outcome (optional)</Label>
-            <Textarea
-              id="outcome-note"
-              placeholder="What did you actually do or learn?"
-              value={outcome}
-              onChange={(event) => setOutcome(event.target.value)}
-              maxLength={240}
-              rows={3}
-            />
-          </div>
-
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleOutcomeSkip}>
-              Skip
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleOutcomeSave}
-              disabled={!outcome.trim()}
-            >
-              Save outcome
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <CheckoutDialog
+        pendingSession={pendingSession}
+        outcome={outcome}
+        setOutcome={setOutcome}
+        handleOutcomeSave={handleOutcomeSave}
+        handleOutcomeSkip={handleOutcomeSkip}
+      />
 
       <AddSessionDialog
         addOpen={addOpen}
